@@ -17,7 +17,7 @@ module.exports = function (app, client) {
 
   app.route('/api/threads/:board')
     .post(async (req, res) => {
-        const board = req.params.board
+        const board = req.params.board;
         const col = client.db().collection(board);
         const required_fields = ['text', 'delete_password'];
         let missing = [];
