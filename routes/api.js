@@ -41,7 +41,7 @@ module.exports = function (app, client) {
             reported: false,
         });
         if (r.insertedCount == 1) {
-            return res.redirect(`/b/${board}`);
+            return res.redirect(`/b/${board}/`);
         }
         return res.status(500).send('Database error.');
     });
