@@ -7,15 +7,16 @@
 		"start": "node server.js"
 	},
 	"dependencies": {
-		"express": "^4.17.1",
-		"cors": "^2.8.5",
+		"bcrypt": "^3.0.7",
 		"body-parser": "^1.19.0",
 		"chai": "^4.2.0",
-		"mongodb": "^3.4.0",
 		"chai-http": "^4.3.0",
+		"cors": "^2.8.5",
+		"express": "^4.17.1",
+		"helmet": "^3.21.2",
 		"mocha": "^6.2.2",
-		"zombie": "^6.1.4",
-		"helmet": "^3.21.2"
+		"mongodb": "^3.4.0",
+		"zombie": "^6.1.4"
 	},
 	"engines": {
 		"node": "4.4.3"

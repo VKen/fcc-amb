@@ -10,6 +10,8 @@
 
 var expect = require('chai').expect;
 var ObjectId = require('mongodb').ObjectID;
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 module.exports = function (app, client) {
 
@@ -30,9 +32,10 @@ module.exports = function (app, client) {
         }
 
         let now = new Date();
+        let hashed = await bcrypt.hash(req.body.delete_password, saltRounds);
         let r = await col.insertOne({
             text: req.body.text,
-            delete_password: req.body.delete_password,  // TODO: hash?
+            delete_password: hashed,
             created_on: now,
             bumped_on: now,
             reported: false,
@@ -41,7 +44,6 @@ module.exports = function (app, client) {
             return res.redirect(`/b/${board}`);
         }
         return res.status(500).send('Database error.');
-
     });
 
   app.route('/api/replies/:board');
