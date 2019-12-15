@@ -16,6 +16,45 @@ const saltRounds = 10;
 module.exports = function (app, client) {
 
   app.route('/api/threads/:board')
+    .get(async (req, res) => {
+        const board = req.params.board;
+        const col = client.db().collection(board);
+        try {
+            let r = await col.aggregate([{
+                $addFields: {
+                    replies: {
+                        $ifNull: [ "$replies", []],
+                    },
+                },
+            },
+            {
+                $sort: {
+                    created_on: -1,
+                    "replies.created_on": -1
+                },
+            },
+            {
+                $limit : 10,
+            },
+            {
+                $project: {
+                    text: 1,
+                    created_on: 1,
+                    bumped_on: 1,
+                    replies: {
+                        $slice: [ "$replies", -3 ],
+                    },
+                    replycount: { $size: "$replies" },  // required by frontend
+                }
+            },
+            {
+                $unset: ["replies.delete_password", "replies.reported"],
+            }]).toArray();
+            res.json(r)
+        } catch (e) {
+            res.status(500).send(e.message);
+        }
+    })
     .post(async (req, res) => {
         const board = req.params.board;
         const col = client.db().collection(board);
