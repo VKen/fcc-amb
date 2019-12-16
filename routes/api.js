@@ -87,6 +87,43 @@ module.exports = function (app, client) {
 
   app.route('/api/replies/:board')
     .post(async (req, res) => {
+        const board = req.params.board;
+        const col = client.db().collection(board);
+        const required_fields = ['text', 'delete_password', 'thread_id'];
 
+        let missing = [];
+        if (!required_fields.every((ele, idx) => {
+            if (req.body[ele] === undefined) {
+                missing.push(ele);
+                return false;
+            }
+            return true
+        })) {
+            return res.status(422).send(`missing required fields ${JSON.stringify(missing)}`);
+        }
+
+        let now = new Date();
+        let hashed = await bcrypt.hash(req.body.delete_password, saltRounds);
+
+        let r = await col.updateOne({
+            _id: new ObjectId(req.body.thread_id),
+        },
+        {
+            $set: { bumped_on: now },
+            $push: {
+               replies: {
+                   _id: new ObjectId(),
+                   text: req.body.text,
+                   delete_password: hashed,
+                   created_on: now,
+                   reported: false,
+               }
+            }
+        });
+
+        if (r.result.ok && r.matchedCount == 1 && r.modifiedCount == 1) {
+            return res.redirect(`/b/${board}/${req.body.thread_id}`);
+        }
+        return res.status(500).send('Database error.');
     });
 };
