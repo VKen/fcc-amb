@@ -48,7 +48,7 @@ module.exports = function (app, client) {
                 }
             },
             {
-                $unset: ["replies.delete_password", "replies.reported"],
+                $project: {"replies.delete_password": 0, "replies.reported": 0},
             }]).toArray();
             res.json(r)
         } catch (e) {
@@ -85,6 +85,8 @@ module.exports = function (app, client) {
         return res.status(500).send('Database error.');
     });
 
-  app.route('/api/replies/:board');
+  app.route('/api/replies/:board')
+    .post(async (req, res) => {
 
+    });
 };
