@@ -86,6 +86,27 @@ module.exports = function (app, client) {
     });
 
   app.route('/api/replies/:board')
+    .get(async (req, res) => {
+        const board = req.params.board;
+        const col = client.db().collection(board);
+        const thread_id = req.query.thread_id;
+        if (!thread_id) {
+            return res.status(422).send('missing `thread_id` query param');
+        }
+        let r = await col.findOne({
+            _id: new ObjectId(thread_id),
+        },
+        {
+            projection: {
+                delete_password: 0,
+                reported: 0,
+                "replies.delete_password": 0,
+                "replies.reported": 0
+            }
+        });
+        // Note: what to do when no threads found? Not stated in specs.
+        return res.json(r);
+    })
     .post(async (req, res) => {
         const board = req.params.board;
         const col = client.db().collection(board);
