@@ -108,7 +108,35 @@ suite('Functional Tests', function() {
     });
 
     suite('GET', function() {
-
+        test('Test GET a thread and its replies', (done) =>{
+            chai.request(server)
+              .get(`/api/replies/${board_name}`)
+              .query({
+                  thread_id: thread_id,
+              })
+              .end(function(err, res){
+                  if (err) {
+                      return  assert.fail("some error happened");
+                  }
+                  assert.equal(res.status, 200);
+                  assert.property(res.body, '_id');
+                  assert.property(res.body, 'text');
+                  assert.property(res.body, 'created_on');
+                  assert.property(res.body, 'bumped_on');
+                  assert.property(res.body, 'replies');
+                  assert.notProperty(res.body, 'reported');
+                  assert.notProperty(res.body, 'delete_password');
+                  assert.propertyVal(res.body, 'text', thread_message, 'thread message should be same as input earlier');
+                  assert.isAtLeast(res.body.replies.length, 1, 'replies is least 1');
+                  assert.property(res.body.replies.slice(-1)[0], '_id');
+                  assert.property(res.body.replies.slice(-1)[0], 'text');
+                  assert.property(res.body.replies.slice(-1)[0], 'created_on');
+                  assert.notProperty(res.body.replies.slice(-1)[0], 'reported');
+                  assert.notProperty(res.body.replies.slice(-1)[0], 'delete_password');
+                  assert.propertyVal(res.body.replies.slice(-1)[0], 'text', reply_message, 'reply message should be same as input earlier');
+                  done();
+              });
+        });
     });
 
     suite('PUT', function() {
