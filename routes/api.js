@@ -29,7 +29,7 @@ module.exports = function (app, client) {
             },
             {
                 $sort: {
-                    created_on: -1,
+                    bumped_on: -1,
                     "replies.created_on": -1
                 },
             },
