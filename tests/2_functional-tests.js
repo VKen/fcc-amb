@@ -17,9 +17,10 @@ chai.use(chaiHttp);
 const random_val = Math.floor(Math.random() * 100000);
 const board_name = `test-board-${random_val}`,
     thread_message = `test thread message ${random_val}`,
+    thread_message2 = `test thread message ${random_val} later message`,
     reply_message = `reply message ${random_val}`,
     delete_password = `deleteMe${random_val}`;
-let thread_id, thread_id_for_delete, reply_id;
+let thread_id, thread_id2, thread_id_for_delete, reply_id;
 
 
 suite('Functional Tests', function() {
@@ -46,6 +47,22 @@ suite('Functional Tests', function() {
     });
 
     suite('GET', function() {
+        suiteSetup('setup test thread for GET to check sorting', (done) =>{
+            chai.request(server)
+                .post(`/api/threads/${board_name}`)
+                .send({
+                    text: thread_message2,
+                    delete_password: delete_password,
+                })
+                .end((err, res) => {
+                    chai.request(server)
+                        .get(`/api/threads/${board_name}`)
+                        .send()
+                        .end((err, res) => {
+                            done();
+                        });
+                });
+        });
         test('Test GET retrieves board with 10 threads and max 3 recent replies', (done) =>{
             chai.request(server)
               .get(`/api/threads/${board_name}`)
@@ -65,12 +82,25 @@ suite('Functional Tests', function() {
                   assert.property(res.body[0], 'replycount');
                   assert.notProperty(res.body[0], 'reported')
                   assert.notProperty(res.body[0], 'delete_password')
-                  assert.propertyVal(res.body[0], 'text', thread_message, 'thread message should be same as input earlier')
+                  assert.propertyVal(res.body[0], 'text', thread_message2, 'thread message should be ordered by latest message input')
+                  assert.propertyVal(res.body[1], 'text', thread_message, 'thread message should be same as input earlier')
                   assert.isAtMost(res.body[0].replies.length, 3, 'replies is at most 3');
-                  thread_id = res.body[0]._id;
+                  thread_id = res.body[1]._id;
+                  thread_id2 = res.body[0]._id;
                   done();
               });
         })
+        suiteTeardown('teardown test thread for GET to check sorting', (done) =>{
+            chai.request(server)
+                .delete(`/api/threads/${board_name}`)
+                .send({
+                        thread_id: thread_id2,
+                    delete_password: delete_password,
+                })
+                .end((err, res) => {
+                    done();
+                });
+        });
 
     });
 
