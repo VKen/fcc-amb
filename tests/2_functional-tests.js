@@ -19,7 +19,7 @@ const board_name = `test-board-${random_val}`,
     thread_message = `test thread message ${random_val}`,
     reply_message = `reply message ${random_val}`,
     delete_password = `deleteMe${random_val}`;
-let thread_id;
+let thread_id, thread_id_for_delete;
 
 
 suite('Functional Tests', function() {
@@ -74,6 +74,53 @@ suite('Functional Tests', function() {
     });
 
     suite('DELETE', function() {
+
+        suiteSetup('setup test thread for DELETE', (done) =>{
+            chai.request(server)
+                .post(`/api/threads/${board_name}`)
+                .send({
+                    text: thread_message,
+                    delete_password: delete_password,
+                })
+                .end((err, res) => {
+                    chai.request(server)
+                        .get(`/api/threads/${board_name}`)
+                        .send()
+                        .end((err, res) => {
+                            assert.property(res.body[0], '_id');
+                            thread_id_for_delete = res.body[0]._id;
+                            done();
+                        });
+                });
+        });
+
+        test('Test DELETE with wrong password', (done) =>{
+            chai.request(server)
+                .delete(`/api/threads/${board_name}`)
+                .send({
+                        thread_id: thread_id_for_delete,
+                        delete_password: 'wrong_password',
+                })
+                .end((err, res) => {
+                    assert.equal(res.status, 422);
+                    assert.equal(res.text, 'incorrect password');
+                    done();
+                });
+        });
+
+        test('Test DELETE with correct password', (done) =>{
+            chai.request(server)
+              .delete(`/api/threads/${board_name}`)
+              .send({
+                    thread_id: thread_id_for_delete,
+                    delete_password: delete_password,
+              })
+              .end(function(err, res){
+                  assert.equal(res.status, 200);
+                  assert.equal(res.text, 'success');
+                  done();
+              });
+        });
 
     });
 

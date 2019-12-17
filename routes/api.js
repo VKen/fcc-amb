@@ -83,6 +83,40 @@ module.exports = function (app, client) {
             return res.redirect(`/b/${board}/`);
         }
         return res.status(500).send('Database error.');
+    })
+    .delete(async (req, res) => {
+        const board = req.params.board;
+        const col = client.db().collection(board);
+        const required_fields = ['thread_id', 'delete_password'];
+        let missing = [];
+        if (!required_fields.every((ele, idx) => {
+            if (req.body[ele] === undefined) {
+                missing.push(ele);
+                return false;
+            }
+            return true
+        })) {
+            return res.status(422).send(`missing required fields ${JSON.stringify(missing)}`);
+        }
+        let thread_id = req.body.thread_id;
+        try {
+            let r = await col.findOne({ _id: new ObjectId(thread_id) });
+            if (r === null) {  // no such thread
+                return res.status(422).send('no such thread');
+            }
+            let match = await bcrypt.compare(req.body.delete_password, r.delete_password);
+            if (match){
+                r = await col.deleteOne({ _id: new ObjectId(thread_id) });
+                if (r.result.ok == 1 && r.deletedCount == 1) {
+                    return res.send('success');
+                }
+                return res.send(500).send("document can't be updated");
+            } else {
+                return res.status(422).send('incorrect password');
+            }
+        } catch (e) {
+            return res.status(500).send('Database error');
+        }
     });
 
   app.route('/api/replies/:board')
