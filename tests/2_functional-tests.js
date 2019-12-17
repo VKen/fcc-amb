@@ -126,6 +126,18 @@ suite('Functional Tests', function() {
     });
 
     suite('PUT', function() {
+        test('Test PUT to report thread', (done) =>{
+            chai.request(server)
+              .put(`/api/threads/${board_name}`)
+              .send({
+                    thread_id: thread_id,
+              })
+              .end(function(err, res){
+                  assert.equal(res.status, 200);
+                  assert.equal(res.text, 'success');
+                  done();
+              });
+        });
 
     });
 

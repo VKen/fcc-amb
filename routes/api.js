@@ -117,6 +117,41 @@ module.exports = function (app, client) {
         } catch (e) {
             return res.status(500).send('Database error');
         }
+    })
+    .put(async (req, res) => {
+        const board = req.params.board;
+        const col = client.db().collection(board);
+        const required_fields = ['thread_id'];
+
+        let missing = [];
+        if (!required_fields.every((ele, idx) => {
+            if (req.body[ele] === undefined) {
+                missing.push(ele);
+                return false;
+            }
+            return true
+        })) {
+            return res.status(422).send(`missing required fields ${JSON.stringify(missing)}`);
+        }
+
+        let thread_id = req.body.thread_id;
+
+        try {
+            let r = await col.updateOne({
+                _id: new ObjectId(thread_id)
+            },
+            {
+                $set : { reported: true },
+            });
+            if (r.result.ok && r.matchedCount == 1 && r.modifiedCount == 1) {
+                return res.send('success');
+            } else if (!r.matchedCount) {
+                return res.status(422).send('no such thread');
+            }
+            return res.status(500).send("document can't be updated");
+        } catch (e) {
+            return res.status(500).send('Database error');
+        }
     });
 
   app.route('/api/replies/:board')
