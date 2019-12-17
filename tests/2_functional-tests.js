@@ -201,7 +201,19 @@ suite('Functional Tests', function() {
     });
 
     suite('PUT', function() {
-
+        test('Test PUT to report replies', (done) =>{
+            chai.request(server)
+              .put(`/api/replies/${board_name}`)
+              .send({
+                  thread_id: thread_id,
+                  reply_id: reply_id,
+              })
+              .end(function(err, res){
+                  assert.equal(res.status, 200);
+                  assert.equal(res.text, 'success');
+                  done();
+              });
+        });
     });
 
     suite('DELETE', function() {
