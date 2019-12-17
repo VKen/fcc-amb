@@ -236,4 +236,18 @@ suite('Functional Tests', function() {
 
   });
 
+  suiteTeardown('Teardown for created test threads', (done) =>{
+    chai.request(server)
+      .delete(`/api/threads/${board_name}`)
+      .send({
+            thread_id: thread_id,
+            delete_password: delete_password,
+      })
+      .end(function(err, res){
+          assert.equal(res.status, 200);
+          assert.equal(res.text, 'success');
+          done();
+      });
+  });
+
 });
