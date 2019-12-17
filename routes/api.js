@@ -110,7 +110,7 @@ module.exports = function (app, client) {
                 if (r.result.ok == 1 && r.deletedCount == 1) {
                     return res.send('success');
                 }
-                return res.send(500).send("document can't be updated");
+                return res.status(500).send("document can't be updated");
             } else {
                 return res.status(422).send('incorrect password');
             }
@@ -220,7 +220,6 @@ module.exports = function (app, client) {
         const board = req.params.board;
         const col = client.db().collection(board);
         const required_fields = ['thread_id', 'reply_id'];
-
         let missing = [];
         if (!required_fields.every((ele, idx) => {
             if (req.body[ele] === undefined) {
@@ -247,7 +246,7 @@ module.exports = function (app, client) {
             } else if (!r.matchedCount) {
                 return res.status(422).send('no such reply');
             }
-            return res.send(500).send("document can't be updated");
+            return res.status(500).send("document can't be updated");
         } catch (e) {
             return res.status(500).send('Database error');
         }
@@ -294,7 +293,7 @@ module.exports = function (app, client) {
                 if (r.matchedCount == 1, r.modifiedCount == 1) {
                     return res.send('success');
                 }
-                return res.send(500).send("document can't be updated");
+                return res.status(500).send("document can't be updated");
             } else {
                 return res.status(422).send('incorrect password');
             }
