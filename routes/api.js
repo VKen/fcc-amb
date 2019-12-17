@@ -110,7 +110,7 @@ module.exports = function (app, client) {
                 if (r.result.ok == 1 && r.deletedCount == 1) {
                     return res.send('success');
                 }
-                return res.status(500).send("document can't be updated");
+                return res.status(200).send("thread already deleted");
             } else {
                 return res.status(422).send('incorrect password');
             }
@@ -148,7 +148,7 @@ module.exports = function (app, client) {
             } else if (!r.matchedCount) {
                 return res.status(422).send('no such thread');
             }
-            return res.status(500).send("document can't be updated");
+            return res.status(200).send("thread already reported");
         } catch (e) {
             return res.status(500).send('Database error');
         }
@@ -246,7 +246,7 @@ module.exports = function (app, client) {
             } else if (!r.matchedCount) {
                 return res.status(422).send('no such reply');
             }
-            return res.status(500).send("document can't be updated");
+            return res.status(200).send("reply already has been reported");
         } catch (e) {
             return res.status(500).send('Database error');
         }
@@ -293,7 +293,7 @@ module.exports = function (app, client) {
                 if (r.matchedCount == 1, r.modifiedCount == 1) {
                     return res.send('success');
                 }
-                return res.status(500).send("document can't be updated");
+                return res.status(200).send("reply already deleted");
             } else {
                 return res.status(422).send('incorrect password');
             }
