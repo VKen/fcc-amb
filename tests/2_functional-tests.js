@@ -55,6 +55,8 @@ suite('Functional Tests', function() {
                       return  assert.fail("some error happened");
                   }
                   assert.equal(res.status, 200);
+                  assert.isArray(res.body);
+                  assert.isAtMost(res.body.length, 10, 'threads are at most 10');
                   assert.property(res.body[0], '_id');
                   assert.property(res.body[0], 'text');
                   assert.property(res.body[0], 'created_on');
@@ -64,7 +66,6 @@ suite('Functional Tests', function() {
                   assert.notProperty(res.body[0], 'reported')
                   assert.notProperty(res.body[0], 'delete_password')
                   assert.propertyVal(res.body[0], 'text', thread_message, 'thread message should be same as input earlier')
-                  assert.isAtMost(res.body.length, 10, 'threads are at most 10');
                   assert.isAtMost(res.body[0].replies.length, 3, 'replies is at most 3');
                   thread_id = res.body[0]._id;
                   done();
