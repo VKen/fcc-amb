@@ -180,5 +180,54 @@ module.exports = function (app, client) {
             return res.redirect(`/b/${board}/${req.body.thread_id}`);
         }
         return res.status(500).send('Database error.');
+    })
+    .delete(async (req, res) => {
+        const board = req.params.board;
+        const col = client.db().collection(board);
+        const required_fields = ['delete_password', 'thread_id', 'reply_id'];
+
+        let missing = [];
+        if (!required_fields.every((ele, idx) => {
+            if (req.body[ele] === undefined) {
+                missing.push(ele);
+                return false;
+            }
+            return true
+        })) {
+            return res.status(422).send(`missing required fields ${JSON.stringify(missing)}`);
+        }
+
+        const [ thread_id, reply_id ] = [ req.body.thread_id, req.body.reply_id ];
+
+        try {
+            let r = await col.findOne({
+                _id: new ObjectId(thread_id),
+                "replies._id": new ObjectId(reply_id),
+            });
+            if (r === null) {  // no such thread
+                return res.status(422).send('no such reply');
+            }
+            let reply = r.replies.filter((val) => {
+                return val._id == reply_id;
+            })[0];
+            let match = await bcrypt.compare(req.body.delete_password, reply.delete_password);
+            if (match){
+                r = await col.updateOne({
+                    _id: new ObjectId(thread_id),
+                    "replies._id": new ObjectId(reply_id),
+                },
+                {
+                    $set: {"replies.$.text": "[deleted]"},
+                });
+                if (r.matchedCount == 1, r.modifiedCount == 1) {
+                    return res.send('success');
+                }
+                return res.send(500).send("document can't be updated");
+            } else {
+                return res.status(422).send('incorrect password');
+            }
+        } catch (e) {
+            return res.status(500).send('Database error');
+        }
     });
 };

@@ -19,7 +19,7 @@ const board_name = `test-board-${random_val}`,
     thread_message = `test thread message ${random_val}`,
     reply_message = `reply message ${random_val}`,
     delete_password = `deleteMe${random_val}`;
-let thread_id, thread_id_for_delete;
+let thread_id, thread_id_for_delete, reply_id;
 
 
 suite('Functional Tests', function() {
@@ -182,6 +182,7 @@ suite('Functional Tests', function() {
                   assert.notProperty(res.body.replies.slice(-1)[0], 'reported');
                   assert.notProperty(res.body.replies.slice(-1)[0], 'delete_password');
                   assert.propertyVal(res.body.replies.slice(-1)[0], 'text', reply_message, 'reply message should be same as input earlier');
+                  reply_id = res.body.replies.slice(-1)[0]._id;
                   done();
               });
         });
@@ -192,7 +193,45 @@ suite('Functional Tests', function() {
     });
 
     suite('DELETE', function() {
+        test('Test DELETE a reply from a thread with wrong password', (done) =>{
+            chai.request(server)
+              .delete(`/api/replies/${board_name}`)
+              .send({
+                  thread_id: thread_id,
+                  reply_id: reply_id,
+                  delete_password: "wrong password",
+              })
+              .end(function(err, res){
+                  assert.equal(res.status, 422);
+                  assert.equal(res.text, 'incorrect password');
+                  done();
+              });
+        });
 
+        test('Test DELETE a reply from a thread with correct password', (done) =>{
+            chai.request(server)
+              .delete(`/api/replies/${board_name}`)
+              .send({
+                  thread_id: thread_id,
+                  reply_id: reply_id,
+                  delete_password: delete_password,
+              })
+              .end(function(err, res){
+                  assert.equal(res.status, 200);
+                  assert.equal(res.text, 'success');
+
+                  // check actual reply
+                  chai.request(server)
+                    .get(`/api/replies/${board_name}`)
+                    .query({
+                        thread_id: thread_id,
+                    })
+                    .end(function(err, res){
+                        assert.propertyVal(res.body.replies.slice(-1)[0], 'text', "[deleted]", 'reply message should become "[deleted]"');
+                        done();
+                    });
+              });
+        });
     });
 
   });
